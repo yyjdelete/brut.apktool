@@ -755,7 +755,7 @@ public class AXmlResourceParser implements XmlResourceParser {
         if (m_event != START_TAG) {
             throw new IndexOutOfBoundsException("Current event is not START_TAG.");
         }
-        int offset = index * 5;
+        int offset = index *  ATTRIBUTE_LENGHT;
         if (offset >= m_attributes.length) {
             throw new IndexOutOfBoundsException("Invalid attribute index (" + index + ").");
         }
