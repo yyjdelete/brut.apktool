@@ -34,6 +34,7 @@ public class Res9patchStreamDecoder implements ResStreamDecoder {
             throws AndrolibException {
         try {
             byte[] data = IOUtils.toByteArray(in);
+            NinePatch np = getNinePatch(data);
 
             BufferedImage im = ImageIO.read(new ByteArrayInputStream(data));
             int w = im.getWidth(), h = im.getHeight();
@@ -58,7 +59,6 @@ public class Res9patchStreamDecoder implements ResStreamDecoder {
             	}
             }
 
-            NinePatch np = getNinePatch(data);
             drawHLine(im2, h + 1, np.padLeft + 1, w - np.padRight);
             drawVLine(im2, w + 1, np.padTop + 1, h - np.padBottom);
 
