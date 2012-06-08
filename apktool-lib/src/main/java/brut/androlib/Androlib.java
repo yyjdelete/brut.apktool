@@ -41,7 +41,11 @@ public class Androlib {
     private final AndrolibResources mAndRes = new AndrolibResources();
 
     public ResTable getResTable(ExtFile apkFile) throws AndrolibException {
-        return mAndRes.getResTable(apkFile);
+        return mAndRes.getResTable(apkFile, true);
+    }
+
+    public ResTable getResTable(ExtFile apkFile, boolean loadMainPkg) throws AndrolibException {
+        return mAndRes.getResTable(apkFile, loadMainPkg);
     }
 
     public void decodeSourcesRaw(ExtFile apkFile, File outDir, boolean debug)
@@ -82,7 +86,7 @@ public class Androlib {
         try {
             Directory apk = apkFile.getDirectory();
             LOGGER.info("Copying raw manifest...");
-            apkFile.getDirectory().copyToDir(outDir, APK_MANIFEST_FILENAME);
+            apkFile.getDirectory().copyToDir(outDir, APK_MANIFEST_FILENAMES);
         } catch (DirectoryException ex) {
             throw new AndrolibException(ex);
         }
@@ -263,6 +267,8 @@ public class Androlib {
             throws AndrolibException {
         if (! buildResourcesRaw(appDir, forceBuildAll)
                 && ! buildResourcesFull(appDir, forceBuildAll, framework,
+                    usesFramework) 
+                && ! buildManifest(appDir, forceBuildAll, framework,
                     usesFramework)) {
             LOGGER.warning("Could not find resources");
         }
@@ -332,6 +338,65 @@ public class Androlib {
             throw new AndrolibException(ex);
         } catch (DirectoryException ex) {
             throw new AndrolibException(ex);
+        }
+    }
+
+    public boolean buildManifestRaw(ExtFile appDir, boolean forceBuildAll)
+            throws AndrolibException {
+        try {
+            File apkDir = new File(appDir, APK_DIRNAME);
+            LOGGER.info("Copying raw AndroidManifest.xml...");
+            appDir.getDirectory()
+                .copyToDir(apkDir, APK_MANIFEST_FILENAMES);
+            return true;
+        } catch (DirectoryException ex) {
+            throw new AndrolibException(ex);
+        }
+    }
+
+    public boolean buildManifest(ExtFile appDir, boolean forceBuildAll,
+            boolean framework, Map<String, Object> usesFramework)
+            throws AndrolibException {
+        try {
+            if (! new File(appDir, "AndroidManifest.xml").exists()) {
+                return false;
+            }
+            if (! forceBuildAll) {
+                LOGGER.info("Checking whether resources has changed...");
+            }
+            File apkDir = new File(appDir, APK_DIRNAME);
+            if (forceBuildAll || isModified(
+                    newFiles(APK_MANIFEST_FILENAMES, appDir),
+                    newFiles(APK_MANIFEST_FILENAMES, apkDir))) {
+                LOGGER.info("Building AndroidManifest.xml...");
+
+                File apkFile = File.createTempFile("APKTOOL", null);
+                apkFile.delete();
+
+                File ninePatch = new File(appDir, "9patch");
+                if (! ninePatch.exists()) {
+                    ninePatch = null;
+                }
+
+                mAndRes.aaptPackage(
+                    apkFile,
+                    new File(appDir, "AndroidManifest.xml"),
+                    null,
+                    ninePatch, null, parseUsesFramework(usesFramework),
+                    false, framework
+                );
+
+                Directory tmpDir = new ExtFile(apkFile).getDirectory();
+                tmpDir.copyToDir(apkDir, APK_MANIFEST_FILENAMES);
+            }
+            return true;
+        } catch (IOException ex) {
+            throw new AndrolibException(ex);
+        } catch (DirectoryException ex) {
+            throw new AndrolibException(ex);
+        } catch (AndrolibException ex) {
+            LOGGER.warning("Parse AndroidManifest.xml failed, treat it as raw file.");
+            return buildManifestRaw(appDir, forceBuildAll);
         }
     }
 
@@ -456,5 +521,6 @@ public class Androlib {
         new String[]{"resources.arsc", "AndroidManifest.xml"};
     private final static String[] APP_RESOURCES_FILENAMES =
         new String[]{"AndroidManifest.xml", "res"};
-    private final static String APK_MANIFEST_FILENAME = "AndroidManifest.xml";
+    private final static String[] APK_MANIFEST_FILENAMES =
+        new String[]{"AndroidManifest.xml"};
 }

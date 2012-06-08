@@ -39,8 +39,14 @@ import org.xmlpull.v1.XmlSerializer;
  */
 final public class AndrolibResources {
     public ResTable getResTable(ExtFile apkFile) throws AndrolibException {
+        return getResTable(apkFile, true);
+    }
+
+    public ResTable getResTable(ExtFile apkFile, boolean loadMainPkg) throws AndrolibException {
         ResTable resTable = new ResTable(this);
-        loadMainPkg(resTable, apkFile);
+        if (loadMainPkg) {
+            loadMainPkg(resTable, apkFile);
+        }
         return resTable;
     }
 

@@ -155,12 +155,14 @@ public class ApkDecoder {
 
     public ResTable getResTable() throws AndrolibException {
         if (mResTable == null) {
-            if (! hasResources()) {
+            boolean hasResources = hasResources();
+            boolean hasManifest = hasManifest();
+            if (! (hasManifest || hasResources)) {
                 throw new AndrolibException(
-                    "Apk doesn't containt resources.arsc file");
+                    "Apk doesn't contain either AndroidManifest.xml file or resources.arsc file");
             }
             AndrolibResources.sKeepBroken = mKeepBrokenResources;
-            mResTable = mAndrolib.getResTable(mApkFile);
+            mResTable = mAndrolib.getResTable(mApkFile, hasResources);
             mResTable.setFrameTag(mFrameTag);
         }
         return mResTable;
@@ -210,7 +212,7 @@ public class ApkDecoder {
         meta.put("version", Androlib.getVersion());
         meta.put("apkFileName", mApkFile.getName());
 
-        if (mDecodeResources != DECODE_RESOURCES_NONE && hasResources()) {
+        if (mDecodeResources != DECODE_RESOURCES_NONE && (hasManifest() || hasResources())) {
             meta.put("isFrameworkApk",
                 Boolean.valueOf(mAndrolib.isFrameworkApk(getResTable())));
             putUsesFramework(meta);
