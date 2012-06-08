@@ -699,7 +699,7 @@ public class MXSerializer implements XmlSerializer {
         }
     }
     
-    private void writeNamespaceDeclarations() throws IOException
+    protected void writeNamespaceDeclarations() throws IOException
     {
         //int start = elNamespaceCount[ depth - 1 ];
         for (int i = elNamespaceCount[ depth - 1 ]; i < namespaceEnd; i++)
