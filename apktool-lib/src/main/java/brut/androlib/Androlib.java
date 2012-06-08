@@ -92,9 +92,9 @@ public class Androlib {
         }
     }
 
-    public void decodeManifestFull(ExtFile apkFile, File outDir)
-            throws AndrolibException {
-        mAndRes.decodeManifest(apkFile, outDir);
+    public void decodeManifestFull(ExtFile apkFile, File outDir,
+            ResTable resTable) throws AndrolibException {
+        mAndRes.decodeManifest(resTable, apkFile, outDir);
     }
 
     public void decodeResourcesRaw(ExtFile apkFile, File outDir)

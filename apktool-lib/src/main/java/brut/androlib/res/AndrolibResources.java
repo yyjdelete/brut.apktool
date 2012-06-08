@@ -103,18 +103,24 @@ final public class AndrolibResources {
         return pkg;
     }
 
-    public void decodeManifest(ExtFile apkFile, File outDir)
+    public void decodeManifest(ResTable resTable, ExtFile apkFile, File outDir)
             throws AndrolibException {
 
         Duo<ResFileDecoder, AXmlResourceParser> duo = getManifestFileDecoder();
         ResFileDecoder fileDecoder = duo.m1;
+
+        // Set ResAttrDecoder
+        duo.m2.setAttrDecoder(new ResAttrDecoder());
+        ResAttrDecoder attrDecoder = duo.m2.getAttrDecoder();
+        // Fake ResPackage
+        attrDecoder.setCurrentPackage(new ResPackage(resTable, 0, null));
 
         Directory inApk, out;
         try {
             inApk = apkFile.getDirectory();
             out = new FileDirectory(outDir);
 
-            LOGGER.info("Decoding AndroidManifest.xml without resources...");
+            LOGGER.info("Decoding AndroidManifest.xml with only framework resources...");
             fileDecoder.decode(
                 inApk, "AndroidManifest.xml", out, "AndroidManifest.xml",
                 "xml");
