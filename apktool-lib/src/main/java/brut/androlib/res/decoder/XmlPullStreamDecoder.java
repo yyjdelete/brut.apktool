@@ -21,6 +21,7 @@ import brut.androlib.res.util.ExtXmlSerializer;
 import java.io.*;
 import org.xmlpull.v1.*;
 import org.xmlpull.v1.wrapper.*;
+import org.xmlpull.v1.wrapper.classic.StaticXmlSerializerWrapper;
 
 /**
  * @author Ryszard Wiśniewski <brut.alll@gmail.com>
@@ -37,7 +38,13 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
         try {
             XmlPullWrapperFactory factory = XmlPullWrapperFactory.newInstance();
             XmlPullParserWrapper par = factory.newPullParserWrapper(mParser);
-            XmlSerializerWrapper ser = factory.newSerializerWrapper(mSerial);
+            XmlSerializerWrapper ser = new StaticXmlSerializerWrapper(mSerial, factory){
+                @Override
+                public void event(XmlPullParser pp) throws XmlPullParserException, IOException {
+                    ((ExtXmlSerializer)xs).moveToLine(pp.getLineNumber());
+                    super.event(pp);
+                }
+            };//factory.newSerializerWrapper(mSerial);
 
             par.setInput(in, null);
             ser.setOutput(out, null);

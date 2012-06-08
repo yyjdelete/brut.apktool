@@ -26,6 +26,7 @@ public class ExtMXSerializer extends MXSerializer implements ExtXmlSerializer {
     @Override
     public void startDocument(String encoding, Boolean standalone) throws
             IOException, IllegalArgumentException, IllegalStateException {
+        cur_line = 1;
         super.startDocument(encoding != null ? encoding : mDefaultEncoding,
             standalone);
         this.newLine();
@@ -66,6 +67,22 @@ public class ExtMXSerializer extends MXSerializer implements ExtXmlSerializer {
 
     public ExtXmlSerializer newLine() throws IOException {
         super.out.write(lineSeparator);
+        cur_line ++;
+        return this;
+    }
+
+    // if(doIndent) writeIndent();
+    @Override
+    protected void writeIndent() throws IOException {
+        super.writeIndent();
+        cur_line ++;
+    }
+
+    @Override
+    public ExtXmlSerializer moveToLine(int newLine) throws IOException {
+        for (int addLines = newLine - cur_line - 1; addLines > 0; addLines --) {
+            newLine();
+        }
         return this;
     }
 
@@ -73,6 +90,11 @@ public class ExtMXSerializer extends MXSerializer implements ExtXmlSerializer {
         mIsDisabledAttrEscape = disabled;
     }
 
+    public int getCurLine() {
+        return cur_line;
+    }
+
     private String mDefaultEncoding;
     private boolean mIsDisabledAttrEscape = false;
+    private int cur_line = 0;
 }
