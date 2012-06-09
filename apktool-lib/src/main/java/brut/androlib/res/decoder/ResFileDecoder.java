@@ -116,6 +116,10 @@ public class ResFileDecoder {
         }
     }
 
+    public ResStreamDecoder getDecoder(String name) throws AndrolibException {
+        return mDecoders.getDecoder(name);
+    }
+
     private final static Logger LOGGER =
         Logger.getLogger(ResFileDecoder.class.getName());
 }

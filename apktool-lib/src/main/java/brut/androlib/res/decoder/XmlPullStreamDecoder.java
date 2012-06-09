@@ -17,8 +17,12 @@
 package brut.androlib.res.decoder;
 
 import brut.androlib.AndrolibException;
+import brut.androlib.res.AndrolibResources;
+import brut.androlib.res.data.ResTable;
 import brut.androlib.res.util.ExtXmlSerializer;
 import java.io.*;
+import java.util.logging.Logger;
+
 import org.xmlpull.v1.*;
 import org.xmlpull.v1.wrapper.*;
 import org.xmlpull.v1.wrapper.classic.StaticXmlSerializerWrapper;
@@ -33,16 +37,81 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
         this.mSerial = serializer;
     }
 
+    public void optimizeForManifest(boolean enabled) {
+        mOptimizeForManifest = enabled;
+    }
+
     public void decode(InputStream in, OutputStream out)
             throws AndrolibException {
         try {
             XmlPullWrapperFactory factory = XmlPullWrapperFactory.newInstance();
             XmlPullParserWrapper par = factory.newPullParserWrapper(mParser);
+            final ResTable resTable = ((AXmlResourceParser)mParser).getAttrDecoder().getCurrentPackage().getResTable();
+            final boolean optimizeForManifest = mOptimizeForManifest;
             XmlSerializerWrapper ser = new StaticXmlSerializerWrapper(mSerial, factory){
+                boolean hideSdkInfo = false;
                 @Override
                 public void event(XmlPullParser pp) throws XmlPullParserException, IOException {
-                    ((ExtXmlSerializer)xs).moveToLine(pp.getLineNumber());
-                    super.event(pp);
+                    int type = pp.getEventType();
+                    int newLine = pp.getLineNumber();
+                    if ((!optimizeForManifest) || newLine != 0) {
+                        ((ExtXmlSerializer)xs).setLineNumber(newLine, type);
+                        super.event(pp);
+                    } else {
+                        if (type == XmlPullParser.START_TAG) {
+                            if ("uses-sdk".equalsIgnoreCase(pp.getName())) {
+                                
+                                //TODO:parse uses-sdk( and some others?)
+                                /*
+                                 *  (--version-code)
+                                 *  (--version-name)
+                                 *  (debuggable)
+                                 *  (...)
+                                 *  --min-sdk-version
+                                 *  --target-sdk-version
+                                 *  --max-sdk-version
+                                 */
+                                try {
+                                    hideSdkInfo = parseAttr(pp);
+                                    if(hideSdkInfo) {
+                                        return;
+                                    }
+                                } catch (AndrolibException e) {}
+                            }
+                            LOGGER.warning("Found generated line but parse failed, output it in xml.");
+                        } else if (hideSdkInfo && type == XmlPullParser.END_TAG && 
+                                "uses-sdk".equalsIgnoreCase(pp.getName())) {
+                            return;
+                        }
+                        //((ExtXmlSerializer)xs).setLineNumber(newLine, type);
+                        super.event(pp);
+                    }
+                }
+                
+                private boolean parseAttr(XmlPullParser pp) throws AndrolibException {
+                    ResTable restable = resTable;
+                    for (int i = 0; i < pp.getAttributeCount(); i++) {
+                        final String a_ns = "http://schemas.android.com/apk/res/android";
+                        String ns = pp.getAttributeNamespace (i);
+                        if (a_ns.equalsIgnoreCase(ns)) {
+                            String name = pp.getAttributeName (i);
+                            String value = pp.getAttributeValue (i);
+                            if (name != null && value != null) {
+                                if (name.equalsIgnoreCase("minSdkVersion") || 
+                                        name.equalsIgnoreCase("targetSdkVersion") || 
+                                        name.equalsIgnoreCase("maxSdkVersion")) {
+                                    restable.addSdkInfo(name, value);
+                                } else {
+                                    restable.clearSdkInfo();
+                                    return false;//Found unknown flags
+                                }
+                            }
+                        } else {
+                            resTable.clearSdkInfo();
+                            return false;//Found unknown flags
+                        }
+                    }
+                    return true;
                 }
             };//factory.newSerializerWrapper(mSerial);
 
@@ -63,4 +132,9 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
 
     private final XmlPullParser mParser;
     private final ExtXmlSerializer mSerial;
+
+    private boolean mOptimizeForManifest = false;
+
+    private final static Logger LOGGER =
+        Logger.getLogger(XmlPullStreamDecoder.class.getName());
 }
