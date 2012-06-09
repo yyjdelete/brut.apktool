@@ -109,7 +109,8 @@ public class ApkDecoder {
                     mAndrolib.decodeManifestRaw(mApkFile, outDir);
                     break;
                 case DECODE_RESOURCES_FULL:
-                    mAndrolib.decodeManifestFull(mApkFile, outDir);
+                    mAndrolib.decodeManifestFull(mApkFile, outDir,
+                            getResTable());
                     break;
                 }
             }
