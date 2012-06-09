@@ -217,6 +217,9 @@ public class ResConfigFlags {
             case DENSITY_MEDIUM:
                 ret.append("-mdpi");
                 break;
+            case DENSITY_TV:
+                ret.append("-tvdpi");
+                break;
             case DENSITY_HIGH:
                 ret.append("-hdpi");
                 break;
@@ -365,6 +368,7 @@ public class ResConfigFlags {
     public final static short DENSITY_DEFAULT = 0;
     public final static short DENSITY_LOW = 120;
     public final static short DENSITY_MEDIUM = 160;
+    public final static short DENSITY_TV = 213;
     public final static short DENSITY_HIGH = 240;
     public final static short DENSITY_XHIGH = 320;
     public final static short DENSITY_NONE = -1;
