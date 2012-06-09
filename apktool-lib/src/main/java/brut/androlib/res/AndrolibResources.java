@@ -189,9 +189,11 @@ final public class AndrolibResources {
     }
 
     public void setSdkInfo(Map<String, String> map) {
-        mMinSdkVersion = map.get("minSdkVersion");
-        mTargetSdkVersion = map.get("targetSdkVersion");
-        mMaxSdkVersion = map.get("maxSdkVersion");
+        if(map != null) {
+            mMinSdkVersion = map.get("minSdkVersion");
+            mTargetSdkVersion = map.get("targetSdkVersion");
+            mMaxSdkVersion = map.get("maxSdkVersion");
+        }
     }
 
     public void aaptPackage(File apkFile, File manifest, File resDir,
