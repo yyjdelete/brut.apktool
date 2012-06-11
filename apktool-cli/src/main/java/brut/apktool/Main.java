@@ -209,7 +209,10 @@ public class Main {
     private static void usage() {
         System.out.println(
             "Apktool v" + Androlib.getVersion() + " - a tool for reengineering Android apk files\n" +
+            "with smali v" + ApktoolProperties.get("smaliVersion") +
+            ", and baksmali v" + ApktoolProperties.get("baksmaliVersion") + "\n" +
             "Copyright 2010 Ryszard Wiśniewski <brut.alll@gmail.com>\n" +
+            "Modified by yyj(http://github.com/yyjdelete)\n" +
             "Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n" +
             "\n" +
             "Usage: apktool [-q|--quiet OR -v|--verbose] COMMAND [...]\n" +
