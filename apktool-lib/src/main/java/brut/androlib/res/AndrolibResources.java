@@ -121,13 +121,8 @@ final public class AndrolibResources {
             out = new FileDirectory(outDir);
 
             LOGGER.info("Decoding AndroidManifest.xml with only framework resources...");
-            
-            XmlPullStreamDecoder xpsd = (XmlPullStreamDecoder)fileDecoder.getDecoder("xml");
-            xpsd.optimizeForManifest(true);
-            fileDecoder.decode(
-                inApk, "AndroidManifest.xml", out, "AndroidManifest.xml",
-                "xml");
-            xpsd.optimizeForManifest(false);
+            fileDecoder.decodeManifest(
+                inApk, "AndroidManifest.xml", out, "AndroidManifest.xml");
 
         } catch (DirectoryException ex) {
             throw new AndrolibException(ex);
@@ -149,13 +144,9 @@ final public class AndrolibResources {
             out = new FileDirectory(outDir);
 
             LOGGER.info("Decoding AndroidManifest.xml with resources...");
-            
-            XmlPullStreamDecoder xpsd = (XmlPullStreamDecoder)fileDecoder.getDecoder("xml");
-            xpsd.optimizeForManifest(true);
-            fileDecoder.decode(
-                inApk, "AndroidManifest.xml", out, "AndroidManifest.xml",
-                "xml");
-            xpsd.optimizeForManifest(false);
+
+            fileDecoder.decodeManifest(
+                inApk, "AndroidManifest.xml", out, "AndroidManifest.xml");
 
             if (inApk.containsDir("res")) {
                 in = inApk.getDir("res");

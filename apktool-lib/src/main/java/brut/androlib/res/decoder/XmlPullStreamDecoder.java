@@ -37,10 +37,6 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
         this.mSerial = serializer;
     }
 
-    public void optimizeForManifest(boolean enabled) {
-        mOptimizeForManifest = enabled;
-    }
-
     public void decode(InputStream in, OutputStream out)
             throws AndrolibException {
         try {
@@ -61,7 +57,7 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
                         if (type == XmlPullParser.START_TAG) {
                             if ("uses-sdk".equalsIgnoreCase(pp.getName())) {
                                 
-                                //TODO:parse uses-sdk( and some others?)
+                                //TODO:  parse uses-sdk( and some others?)
                                 /*
                                  *  (--version-code)
                                  *  (--version-name)
@@ -127,6 +123,16 @@ public class XmlPullStreamDecoder implements ResStreamDecoder {
             throw new AndrolibException("Could not decode XML", ex);
         } catch (IOException ex) {
             throw new AndrolibException("Could not decode XML", ex);
+        }
+    }
+
+    public void decodeManifest(InputStream in, OutputStream out)
+            throws AndrolibException {
+        mOptimizeForManifest = true;
+        try {
+            decode(in, out);
+        } finally {
+            mOptimizeForManifest = false;
         }
     }
 
