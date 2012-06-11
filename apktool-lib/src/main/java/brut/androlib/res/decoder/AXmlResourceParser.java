@@ -902,6 +902,12 @@ public class AXmlResourceParser implements XmlResourceParser {
                 }
                 m_namespaces.increaseDepth();
                 m_event = START_TAG;
+                m_strings.touch(m_name, m_name);
+                for(int i = 0; i<attributeCount; i++) {
+                    m_strings.touch(m_attributes[ATTRIBUTE_IX_NAME], m_name);
+                    m_strings.touch(m_attributes[ATTRIBUTE_IX_VALUE_STRING], m_name);
+                }
+                m_strings.touch(m_name, m_name);
                 sortAttrs();
                 break;
             }
@@ -944,11 +950,45 @@ public class AXmlResourceParser implements XmlResourceParser {
 		return sb.toString();
 	}
 
+	private boolean compareAttr(int[] attr1, int[] attr2) {
+		//TODO:  sort Attrs
+		/*
+		 * ATTRIBUTE_IX_VALUE_TYPE == TYPE_STRING	: ATTRIBUTE_IX_VALUE_STRING
+		 * 											: ATTRIBUTE_IX_NAMESPACE_URI
+		 * ATTRIBUTE_IX_NAMESPACE_URI				: ATTRIBUTE_IX_NAME
+		 * id
+		 * 
+		 */
+		if(attr1[ATTRIBUTE_IX_VALUE_TYPE] == TypedValue.TYPE_STRING && 
+				attr1[ATTRIBUTE_IX_VALUE_TYPE] == attr2[ATTRIBUTE_IX_VALUE_TYPE] && 
+				//(m_strings.touch(attr1[ATTRIBUTE_IX_VALUE_STRING], m_name) || 
+				//		m_strings.touch(attr2[ATTRIBUTE_IX_VALUE_STRING], m_name)) && 
+				//m_strings.touch(attr1[ATTRIBUTE_IX_VALUE_STRING], m_name) && 
+				attr1[ATTRIBUTE_IX_VALUE_STRING] != attr2[ATTRIBUTE_IX_VALUE_STRING]) {
+			return (attr1[ATTRIBUTE_IX_VALUE_STRING] < attr2[ATTRIBUTE_IX_VALUE_STRING]);
+		} else if ((attr1[ATTRIBUTE_IX_NAMESPACE_URI] == attr2[ATTRIBUTE_IX_NAMESPACE_URI]) && (attr1[ATTRIBUTE_IX_NAMESPACE_URI] != -1) &&
+				//(m_strings.touch(attr1[ATTRIBUTE_IX_NAME], m_name) || 
+				//		m_strings.touch(attr2[ATTRIBUTE_IX_NAME], m_name)) && 
+				//m_strings.touch(attr1[ATTRIBUTE_IX_NAME], m_name) && 
+		        (attr1[ATTRIBUTE_IX_NAME] != attr2[ATTRIBUTE_IX_NAME])) {
+			return (attr1[ATTRIBUTE_IX_NAME] < attr2[ATTRIBUTE_IX_NAME]);
+		//} else if (attr1[ATTRIBUTE_IX_NAMESPACE_URI] < attr2[ATTRIBUTE_IX_NAMESPACE_URI]) {
+		//	return true;
+		} else {
+			return false;
+		}
+	}
+
     private void sortAttrs() {
         int attributeCount = m_attributes.length/ATTRIBUTE_LENGHT;
-        int tmp1[][] = new int[attributeCount][ATTRIBUTE_LENGHT];
+        int tmp1[][] = new int[attributeCount][];
         int tmp2[] = null;
         for (int i = 0; i < attributeCount;i++) {
+            tmp1[i] = new int[ATTRIBUTE_LENGHT+1];
+            for(int j = 0; j < ATTRIBUTE_LENGHT; j++) {
+                tmp1[i][j] = m_attributes[i*ATTRIBUTE_LENGHT+j];
+            }
+            tmp1[i][ATTRIBUTE_LENGHT] = i;
             if(DBG) {
             	try {
                 	if (dbgOut == null) {
@@ -957,23 +997,16 @@ public class AXmlResourceParser implements XmlResourceParser {
 					dbgOut.write("Namespace: " + getAttributeNamespace (i) + 
 					            ", Name: " + getAttributeName (i)+
 					            ", Value: " + getAttributeValue (i) + ", Array: " + 
-					            formatArray(m_attributes, i*ATTRIBUTE_LENGHT, (i+1)*ATTRIBUTE_LENGHT) + "\n");
+					            formatArray(tmp1[i], 0, ATTRIBUTE_LENGHT) + "\n");
 	            	dbgOut.flush();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-            }
-            tmp1[i] = new int[ATTRIBUTE_LENGHT];
-            for(int j = 0; j < ATTRIBUTE_LENGHT; j++) {
-                tmp1[i][j] = m_attributes[i*ATTRIBUTE_LENGHT+j];
             }
         }
         for (int j = 1; j < attributeCount;j++) {
             for (int i = 1; i < attributeCount;i++) {
-                if((tmp1[i][ATTRIBUTE_IX_NAMESPACE_URI] < tmp1[i-1][ATTRIBUTE_IX_NAMESPACE_URI]) || 
-                        (tmp1[i][ATTRIBUTE_IX_NAMESPACE_URI] == tmp1[i-1][ATTRIBUTE_IX_NAMESPACE_URI] && 
-                        tmp1[i][ATTRIBUTE_IX_NAME] < tmp1[i-1][ATTRIBUTE_IX_NAME])) {
+                if(compareAttr(tmp1[i], tmp1[i-1])) {
                     tmp2 = tmp1[i-1];
                     tmp1[i-1] = tmp1[i];
                     tmp1[i] = tmp2;
