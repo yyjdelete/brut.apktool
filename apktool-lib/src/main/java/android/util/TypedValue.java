@@ -222,9 +222,39 @@ public class TypedValue {
         }
 
         if (type >= TYPE_FIRST_COLOR_INT && type <= TYPE_LAST_COLOR_INT) {
-            return "#" + Integer.toHexString(data);
+            String res =String.format("%08x", data);
+            char[] vals = res.toCharArray();
+            switch (type) {
+            default:
+            case TYPE_INT_COLOR_ARGB8://#AaRrGgBb
+                break;
+            case TYPE_INT_COLOR_RGB8://#FFRrGgBb->#RrGgBb
+                res = res.substring(2);
+                break;
+            case TYPE_INT_COLOR_ARGB4://#AARRGGBB->#ARGB
+                res = new StringBuffer().append(vals[0]).append(vals[2]).append(vals[4]).append(vals[6]).toString();
+                break;
+            case TYPE_INT_COLOR_RGB4://#FFRRGGBB->#RGB
+                res = new StringBuffer().append(vals[2]).append(vals[4]).append(vals[6]).toString();
+                break;
+            }
+            return "#" + res;
         } else if (type >= TYPE_FIRST_INT && type <= TYPE_LAST_INT) {
-            return Integer.toString(data);
+            String res;
+            switch (type) {
+            default:
+            case TYPE_INT_DEC:
+                res = Integer.toString(data);
+                break;
+            //defined before 
+            /*case TYPE_INT_HEX:
+                res = "0x" + Integer.toHexString(data);
+                break;
+            case TYPE_INT_BOOLEAN:
+                res = (data != 0) ? "true":"false";
+                break;*/
+            }
+            return res;
         }
 
         return null;
