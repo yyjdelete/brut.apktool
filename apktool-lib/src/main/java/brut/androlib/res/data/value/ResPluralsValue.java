@@ -17,6 +17,7 @@
 package brut.androlib.res.data.value;
 
 import brut.androlib.res.xml.ResValuesXmlSerializable;
+import brut.androlib.res.xml.ResXmlEncoders;
 import brut.androlib.AndrolibException;
 import brut.androlib.res.data.ResResource;
 import brut.util.Duo;
@@ -50,7 +51,15 @@ public class ResPluralsValue extends ResBagValue implements ResValuesXmlSerializ
             }
             serializer.startTag(null, "item");
             serializer.attribute(null, "quantity", QUANTITY_MAP[i]);
-            serializer.text(item.encodeAsResXmlValue());
+
+            String rawValue = item.encodeAsResXmlValueExt();
+            //AAPT don`t parse formatted for item tag(only for string and string-array tag),
+            // so adding "formatted='fasle'" is useless.
+            /*if (ResXmlEncoders.hasMultipleNonPositionalSubstitutions(rawValue)) {
+                serializer.attribute(null, "formatted", "false");
+            }*/
+            serializer.text(rawValue);
+
             serializer.endTag(null, "item");
         }
         serializer.endTag(null, "plurals");
